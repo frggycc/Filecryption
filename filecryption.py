@@ -6,6 +6,12 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
 
+def generate_key(password, key_size):
+    salt = os.urandom(16)
+    iterations = 10000
+    aes_key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations, key_size)
+    return aes_key, salt
+    
 # Get action, file location, password to use
 # i.e. encrypt example.txt SuperStrongPassword
 # ACTION = str(sys.argv[1])
@@ -41,13 +47,10 @@ length passphrase to a desirable length/AES cipher type
 i.e. Configure to always use AES-128, use passphrase to produce
 a 16 byte hash digest.
 '''
-# Create some random salt of 128 bits or 16 bytes
-salt = os.urandom(16)
-iterations = 10000
-key_size = 16
-aes_key = hashlib.pbkdf2_hmac("sha256", PASS.encode(), salt, 1024, key_size)
-# New AES_key from pass and random salt
-print(binascii.hexlify(aes_key))
+# Get new aes_key to use and salt to save into file
+aes_key, salt = generate_key(PASS, 16)
+
+# Store the salt and encrypted file name
 
 # Encrypt plaintext using that AES key
 plaintext = MESSAGE.encode()
@@ -58,5 +61,3 @@ cipherText = encCipher.encrypt(paddedPlain)
 print("My Plaintext Message:", MESSAGE)
 print("Encrypted Plaintext :", end=" ")
 print(cipherText)
-
-# Store the salt and encrypted file name
