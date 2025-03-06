@@ -13,8 +13,8 @@ def generate_iv():
     return os.urandom(16)
 
 ''' 
-Future Changes: Make key size to 32; The first half for the AES key
-and the second half for the IV; This makes it so we don;t need to keep track
+Testing: Make key size to 32; The first half for the AES key
+and the second half for the IV; This makes it so we don't need to keep track
 of the IV in a file.
 '''
 def generate_key(password, salt):
