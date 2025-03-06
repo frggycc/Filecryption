@@ -24,25 +24,23 @@ def encrypt_message(message, password):
     iv   = generate_iv()
     key  = generate_key(password, salt)
 
-    # Start creating cipher and encrypting 
-    plaintext = message.encode()
+    # Pad message and start encrypting
+    padded_message = pad(message.encode(), AES.block_size)
     enc_cipher = AES.new(key, AES.MODE_CBC, iv)
-    padded_plain = pad(plaintext, 16)
-    cipher_text  = enc_cipher.encrypt(padded_plain)
-    return salt, cipher_text
+    encrypted_message  = enc_cipher.encrypt(padded_message)
 
-# def decrypt_message(encrypted_message, password, salt):
-#     # Generate key and extract iv and ciphertext
-#     key = generate_key(password, salt)
-#     iv  = encrypted_message[:16]
-#     ciphertext = encrypted_message[16:]
+    return salt, iv, encrypted_message
 
-#     # Start decrypting data
-#     dec_cipher  = AES.new(key, AES.MODE_CBC, iv)
-#     padded_data = dec_cipher.decrypt(cipher_text)
-#     decrypted_message = unpad(padded_data, 16)
+def decrypt_message(encrypted_message, password, salt, iv):
+    # Generate key and extract iv and ciphertext
+    key = generate_key(password, salt)
     
-#     return decrypted_message
+    # Start decrypting data
+    dec_cipher  = AES.new(key, AES.MODE_CBC, iv)
+    padded_data = dec_cipher.decrypt(encrypted_message)
+    decrypted_message = unpad(padded_data, AES.block_size)
+    
+    return decrypted_message.decode()
 
 '''---------------------------------------------------------------------'''
 
@@ -74,9 +72,8 @@ if __name__ == "__main__":
 
     if menu_choice == "1":
         print("Here is your message in plaintext : " + message)
-        salt, cipher_text = encrypt_message(message, password)
+        salt, iv, encrypted_message = encrypt_message(message, password)
         print("Here is your message encrypted   : ", end=" ")
-        print(cipher_text)
-        # decrypted_message = decrypt_message(cipher_text, password, salt)
-        # print("Here is your message after decryption: " + decrypted_message)
-        # exit()
+        print(encrypted_message)
+        decrypted_message = decrypt_message(encrypted_message, password, salt, iv)
+        print("Here is your message after decryption: " + decrypted_message)
