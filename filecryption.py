@@ -2,6 +2,7 @@
 # hashlib to use pbkdf2_hmac
 import os, sys
 import hashlib
+import getpass
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
@@ -11,6 +12,11 @@ def generate_salt():
 def generate_iv():
     return os.urandom(16)
 
+''' 
+Future Changes: Make key size to 32; The first half for the AES key
+and the second half for the IV; This makes it so we don;t need to keep track
+of the IV in a file.
+'''
 def generate_key(password, salt):
     # Hash algorithm, passphrase, salt, iterations, key len in bytes
     key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 10000, 32)
@@ -52,28 +58,30 @@ if __name__ == "__main__":
         print("Usage: python3 filecryption.py <message>")
         exit()
 
-    message = sys.argv[1]
+    message  = sys.argv[1]
 
     ''' 
     User choice menu; When begin encrypting files, will also include
     decrypting.
     '''
-    print("1. Encrypt message")
+    print("1. Encrypt Messages (Demo)")
     print("2. Exit")
     menu_choice = input("Enter your choice: ")
 
     # Get user password or exit program
-    if menu_choice != "2":
-        ''' *** Add password function from password library '''
-        password = input("Enter Password: ")
+    if menu_choice == "1":
+        password = getpass.getpass("Enter Password: ")
     else:
         print("Leaving filecryption...")
         exit()
 
     if menu_choice == "1":
-        print("Here is your message in plaintext : " + message)
+        print("-"*12 + "\nTesting out encryption/decryption...\n")
+        print("Here is your message (plaintext) : " + message)
         salt, iv, encrypted_message = encrypt_message(message, password)
-        print("Here is your message encrypted   : ", end=" ")
+        print("Here is your message encrypted   :", end=" ")
         print(encrypted_message)
         decrypted_message = decrypt_message(encrypted_message, password, salt, iv)
         print("Here is your message after decryption: " + decrypted_message)
+
+
