@@ -9,26 +9,25 @@ from Crypto.Util.Padding import unpad
 
 def generate_salt():
     return os.urandom(16)
-def generate_iv():
-    return os.urandom(16)
 
 ''' 
 Testing: Make key size to 32; The first half for the AES key
 and the second half for the IV; This makes it so we don't need to keep track
 of the IV in a file.
 '''
-def generate_key(password, salt):
+def generate_key_and_iv(password, salt):
     # Hash algorithm, passphrase, salt, iterations, key len in bytes
-    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 10000, 32)
-    return key
+    derived_key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 10000, 48)
+    key = derived_key[:32]
+    iv  = derived_key[32:]
+    return key, iv
 
 '''---------------------------------------------------------------------'''
 ''' Used for testing successful encrypting and decrypting '''
 def encrypt_message(message, password):
-    # Generate necessary 
-    salt = generate_salt()
-    iv   = generate_iv()
-    key  = generate_key(password, salt)
+    # Generate necessary values
+    salt    = generate_salt()
+    key, iv = generate_key_and_iv(password, salt)
 
     # Pad message and start encrypting
     padded_message = pad(message.encode(), AES.block_size)
@@ -37,9 +36,9 @@ def encrypt_message(message, password):
 
     return salt, iv, encrypted_message
 
-def decrypt_message(encrypted_message, password, salt, iv):
-    # Generate key and extract iv and ciphertext
-    key = generate_key(password, salt)
+def decrypt_message(encrypted_message, password, salt):
+    # Regenerate key and iv
+    key, iv = generate_key_and_iv(password, salt)
     
     # Start decrypting data
     dec_cipher  = AES.new(key, AES.MODE_CBC, iv)
@@ -81,7 +80,7 @@ if __name__ == "__main__":
         salt, iv, encrypted_message = encrypt_message(message, password)
         print("Here is your message encrypted   :", end=" ")
         print(encrypted_message)
-        decrypted_message = decrypt_message(encrypted_message, password, salt, iv)
+        decrypted_message = decrypt_message(encrypted_message, password, salt)
         print("Here is your message after decryption: " + decrypted_message)
 
 
