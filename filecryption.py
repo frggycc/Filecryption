@@ -3,9 +3,9 @@
 import os, sys
 import hashlib
 import getpass
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
-from Crypto.Util.Padding import unpad
+from Crypto.Cipher import AES # type: ignore
+from Crypto.Util.Padding import pad # type: ignore
+from Crypto.Util.Padding import unpad # type: ignore
 
 def generate_salt():
     return os.urandom(16)
