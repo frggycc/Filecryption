@@ -17,3 +17,9 @@ No progress was being made so I have to unfortunately break everything down and 
 - Moved script down to proper section
 - Changed from using AES-128 to AES-256 as default to be quantum resistant
 
+### 03/06/2025
+- Included getpass library so that characters when entering password stays hidden
+- IV now gets generated via the `.pbkdf2_hmac` function under `generate_key_and_iv`
+	- A longer key is generated; 32 bytes --> 48 bytes
+	- First 32 bytes = key, last 16 bytes = iv
+- Began adding feature to encrypt files only using file types that Python can natively open/read

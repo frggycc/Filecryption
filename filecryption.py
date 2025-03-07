@@ -1,6 +1,7 @@
-# os for various functions
-# hashlib to use pbkdf2_hmac
-import os, sys
+import sys
+import base64
+import json
+import os
 import hashlib
 import getpass
 from Crypto.Cipher import AES
@@ -10,17 +11,17 @@ from Crypto.Util.Padding import unpad
 def generate_salt():
     return os.urandom(16)
 
-''' 
-Testing: Make key size to 32; The first half for the AES key
-and the second half for the IV; This makes it so we don't need to keep track
-of the IV in a file.
-'''
 def generate_key_and_iv(password, salt):
     # Hash algorithm, passphrase, salt, iterations, key len in bytes
     derived_key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 10000, 48)
     key = derived_key[:32]
     iv  = derived_key[32:]
     return key, iv
+
+def file_exist(filename):
+    if not os.path.exists(filename):
+        print("File not found!")
+        exit()
 
 '''---------------------------------------------------------------------'''
 ''' Used for testing successful encrypting and decrypting '''
@@ -48,39 +49,93 @@ def decrypt_message(encrypted_message, password, salt):
     return decrypted_message.decode()
 
 '''---------------------------------------------------------------------'''
+''' Used to encrypt and decrypt files Python can natively open and modify '''
+def encrypt_file(filename, password):
+    # Generate necessary values
+    salt    = generate_salt()
+    key, iv = generate_key_and_iv(password, salt)
+
+    # Read data from file; binary mode to start padding and encrypting
+    with open(filename, 'rb') as file:
+        data = file.read()
+
+    # Pad message and start encrypting
+    padded_data = pad(data, AES.block_size)
+    enc_cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted_data = enc_cipher.encrypt(padded_data)
+
+    encrypted_file = filename + ".enc"
+    with open(encrypted_file, "wb") as file:
+        file.write(encrypted_data)
+
+    # Update the config file, if exist; Otherwise, create one
+    config_file = ".encryption_file"
+    if os.path.exists(config_file):
+        with open(config_file, "r") as file:
+            config = json.load(file)
+    else:
+        config = {}
+
+    # Use dictionary to store filenames and salt information
+    config[filename] = base64.b64encode(salt).decode()
+
+    # Write updated dictionary to json file
+    with open(config_file, "w") as file:
+        json.dump(config, file, indent = 4)
+    
+    if os.path.exists(config_file):
+        print("File encrypted successfully as " + encrypted_file)
+        print("Encryption information stored in " + config_file)
+
 
 ''' Start of script '''
 if __name__ == "__main__":
 
-    # Make sure that script is used correctly
-    if len(sys.argv) != 2:
-        print("Usage: python3 filecryption.py <message>")
-        exit()
-
-    message  = sys.argv[1]
+    # # Make sure that script is used correctly
+    # if len(sys.argv) != 2:
+    #     print("Usage: python3 filecryption.py")
+    #     exit()
 
     ''' 
     User choice menu; When begin encrypting files, will also include
     decrypting.
     '''
-    print("1. Encrypt Messages (Demo)")
-    print("2. Exit")
+    print("1. Encrypt/Decrypt Messages (Demo)")
+    print("2. Encrypt File")
+    print("3. Decrypt File")
+    print("4. Exit")
     menu_choice = input("Enter your choice: ")
 
-    # Get user password or exit program
-    if menu_choice == "1":
-        password = getpass.getpass("Enter Password: ")
-    else:
+    # Exit program
+    if menu_choice == 4:
         print("Leaving filecryption...")
         exit()
 
     if menu_choice == "1":
-        print("-"*12 + "\nTesting out encryption/decryption...\n")
+        print("-"*40 + "\nEncrypt/Decrypt Messages (Demo)...\n")
+        message  = str(input("Enter your message : "))
+        password = getpass.getpass("Enter your password: ")
+
+        print("")
+
         print("Here is your message (plaintext) : " + message)
         salt, iv, encrypted_message = encrypt_message(message, password)
         print("Here is your message encrypted   :", end=" ")
         print(encrypted_message)
         decrypted_message = decrypt_message(encrypted_message, password, salt)
-        print("Here is your message after decryption: " + decrypted_message)
+        print("Message after decryption         : " + decrypted_message)
+
+    if menu_choice == "2":
+        print("-"*40 + "\nEncrypt File...\n")
+        filename = input("Enter the filename : " )
+        file_exist(filename) # Check if file exists
+        password = getpass.getpass("Enter your password: ")
+
+        print("")
+
+        print("Encrypting your file...")
+        encrypt_file(filename, password)
+
+
 
 
