@@ -8,6 +8,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
 
+CONFIG_FILE = ".encryption_file"
+
 def generate_salt():
     return os.urandom(16)
 
@@ -86,6 +88,62 @@ def encrypt_file(filename, password):
     if os.path.exists(config_file):
         print("File encrypted successfully as " + encrypted_file)
         print("Encryption information stored in " + config_file)
+
+def encrypt_file(filename, password):
+    # Generate necessary values
+    salt    = generate_salt()
+    key, iv = generate_key_and_iv(password, salt)
+
+    # Read data from file; binary mode to start padding and encrypting
+    with open(filename, 'rb') as file:
+        data = file.read()
+
+    # Pad message and start encrypting
+    padded_data = pad(data, AES.block_size)
+    enc_cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted_data = enc_cipher.encrypt(padded_data)
+
+    encrypted_file = filename + ".enc"
+    with open(encrypted_file, "wb") as file:
+        file.write(encrypted_data)
+
+    # Update the config file, if exist; Otherwise, create one
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as file:
+            config = json.load(file)
+    else:
+        config = {}
+
+    # Use dictionary to store filenames and salt information
+    config[filename] = base64.b64encode(salt).decode()
+
+    # Write updated dictionary to json file
+    with open(CONFIG_FILE, "w") as file:
+        json.dump(config, file, indent = 4)
+    
+    if os.path.exists(CONFIG_FILE):
+        print("File encrypted successfully as " + encrypted_file)
+        print("Encryption information stored in " + CONFIG_FILE)
+
+def decrypt_file(filename, password):
+    # Load config file
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as file:
+            config = json.load(file)
+    else:
+        config = {}
+
+    # Check if filename exists in config file
+    if filename not in config:
+        print("Filename " + filename + "not found in config file!")
+        return
+    
+    # Check if proper ".enc" file exists in directory
+    encrypted_file = filename + ".enc"
+    if not os.path.exists(encrypted_file):
+        print("Encrypted file" + encrypted_file + "not found!")
+        return
+    
 
 
 ''' Start of script '''
