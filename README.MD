@@ -26,3 +26,4 @@ No progress was being made so I have to unfortunately break everything down and 
 
 ### 03/12/2025
 - Included a warning to users if their ".enc" file was found and gives them the option to overwrite or keep
+- Decrypting .enc files decrypted succesfully!!!
