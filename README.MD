@@ -23,3 +23,6 @@ No progress was being made so I have to unfortunately break everything down and 
 	- A longer key is generated; 32 bytes --> 48 bytes
 	- First 32 bytes = key, last 16 bytes = iv
 - Began adding feature to encrypt files only using file types that Python can natively open/read
+
+### 03/12/2025
+- Included a warning to users if their ".enc" file was found and gives them the option to overwrite or keep
