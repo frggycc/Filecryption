@@ -20,15 +20,15 @@ def generate_key_and_iv(password, salt):
     iv  = derived_key[32:]
     return key, iv
 
-def file_exist(filename):
+def file_exist(filename, crypt):
     if not os.path.exists(filename):
         print("File not found!")
         exit()
-    if os.path.exists(filename + ".enc"):
-        print("Encrypted file already exists!")
+    if os.path.exists(filename + crypt):
+        print("Encryption/Decryption file already exists!")
         proceed = input("Would you like to proceed? (y/n): ")
-    if proceed == "n" or proceed == "N":
-        exit()
+        if proceed == "n" or proceed == "N":
+            exit()
     
 '''---------------------------------------------------------------------'''
 ''' Used for testing successful encrypting and decrypting '''
@@ -101,30 +101,39 @@ def decrypt_file(filename, password):
     else:
         config = {}
     
+    # See if the key exists in the config file/variable
+    if filename not in config:
+        print("Key for ", filename, " not found.")
+        return
+    
     # Check if proper ".enc" file exists in directory for filenmame
     encrypted_file = filename + ".enc"
     if not os.path.exists(encrypted_file):
         print("Encrypted file" + encrypted_file + "not found!")
         return
 
-    # See if the key exists in the config file/variable
-    if filename not in config:
-        print("Key for ", filename, " not found.")
-        return
-
     # All points checked, get key 
-    salt    = generate_salt()
+    salt    = base64.b64decode(config[filename])
     key, iv = generate_key_and_iv(password, salt)
+
+    # Read encrypted file
+    with open(encrypted_file, "rb") as file:
+        encrypted_data = file.read()
     
     dec_cipher = AES.new(key, AES.MODE_CBC, iv)
-    decrypted_data = dec_cipher.encrypt(encrypted_file)
-    decrypted_data = unpad(decrypted_data, AES.block_size)
 
-    decrypted_file = filename + ".dec"
-    with open(decrypted_file, "wb") as file:
-        file.write(decrypted_data)
+    try:
+        decrypted_data = dec_cipher.decrypt(encrypted_data)
+        decrypted_data = unpad(decrypted_data, AES.block_size)
 
-    print(decrypted_file)
+        decrypted_file = filename + ".dec"
+        with open (decrypted_file, "wb") as file:
+            file.write(decrypted_data)
+
+        print("File decrypted successfully.")
+
+    except ValueError:
+        print("Decryption failed or corrupted file.")
 
 
 ''' Start of script '''
@@ -146,10 +155,6 @@ if __name__ == "__main__":
     menu_choice = input("Enter your choice: ")
 
     # Exit program
-    if menu_choice == 4:
-        print("Leaving filecryption...")
-        exit()
-
     if menu_choice == "1":
         print("-"*40 + "\nEncrypt/Decrypt Messages (Demo)...\n")
         message  = str(input("Enter your message : "))
@@ -164,16 +169,33 @@ if __name__ == "__main__":
         decrypted_message = decrypt_message(encrypted_message, password, salt)
         print("Message after decryption         : " + decrypted_message)
 
-    if menu_choice == "2":
+    elif menu_choice == "2":
         print("-"*40 + "\nEncrypt File...\n")
         filename = input("Enter the filename : " )
-        file_exist(filename) # Check if file exists
+        file_exist(filename, ".enc") # Check if file exists
         password = getpass.getpass("Enter your password: ")
 
         print("")
 
         print("Encrypting your file...")
         encrypt_file(filename, password)
+
+    elif menu_choice == "3":
+        print("-"*40 + "\nDecrypt File...\n")
+        filename = input("Enter the filename : " )
+        file_exist(filename, ".dec") # Check if file exists
+        password = getpass.getpass("Enter your password: ")
+
+        print("")
+
+        print("Decrypting your file...")
+        decrypt_file(filename, password)
+
+    else:
+        print("Not a valid choice. Exiting...")
+        exit()
+    
+
 
 
 
