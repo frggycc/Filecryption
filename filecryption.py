@@ -9,6 +9,30 @@ from Crypto.Util.Padding import pad # type: ignore
 from Crypto.Util.Padding import unpad # type: ignore
 
 CONFIG_FILE = ".encryption_file"
+ENCODE_EXT  = ".enc"
+DECODE_EXT  = ".dec"
+
+def get_authentication(filetype):
+    filename = input("Enter the filename : " )
+
+    # If encrypted file exists, ask to overwrite
+    if file_exist(filename, filetype): # Check if file exists
+        print("Encryption/Decryption file already exists!")
+        proceed = input("Would you like to proceed? (y/n): ")
+        if proceed == "n" or proceed == "N":
+            exit()
+    else:
+        print("Filename doesn't exist!")
+        exit()
+    
+    password = getpass.getpass("Enter your password: ")
+
+    print("")
+
+def file_exist(filename, file_ext):
+    if not os.path.exists(filename):
+        return False
+    return True
 
 def generate_salt():
     return os.urandom(16)
@@ -19,16 +43,6 @@ def generate_key_and_iv(password, salt):
     key = derived_key[:32]
     iv  = derived_key[32:]
     return key, iv
-
-def file_exist(filename, crypt):
-    if not os.path.exists(filename):
-        print("File not found!")
-        exit()
-    if os.path.exists(filename + crypt):
-        print("Encryption/Decryption file already exists!")
-        proceed = input("Would you like to proceed? (y/n): ")
-        if proceed == "n" or proceed == "N":
-            exit()
     
 '''---------------------------------------------------------------------'''
 ''' Used for testing successful encrypting and decrypting '''
@@ -71,7 +85,7 @@ def encrypt_file(filename, password):
     enc_cipher = AES.new(key, AES.MODE_CBC, iv)
     encrypted_data = enc_cipher.encrypt(padded_data)
 
-    encrypted_file = filename + ".enc"
+    encrypted_file = filename + ENCODE_EXT
     with open(encrypted_file, "wb") as file:
         file.write(encrypted_data)
 
@@ -107,7 +121,7 @@ def decrypt_file(filename, password):
         return
     
     # Check if proper ".enc" file exists in directory for filenmame
-    encrypted_file = filename + ".enc"
+    encrypted_file = filename + ENCODE_EXT
     if not os.path.exists(encrypted_file):
         print("Encrypted file" + encrypted_file + "not found!")
         return
@@ -126,7 +140,7 @@ def decrypt_file(filename, password):
         decrypted_data = dec_cipher.decrypt(encrypted_data)
         decrypted_data = unpad(decrypted_data, AES.block_size)
 
-        decrypted_file = filename + ".dec"
+        decrypted_file = filename + DECODE_EXT
         with open (decrypted_file, "wb") as file:
             file.write(decrypted_data)
 
@@ -153,10 +167,11 @@ if __name__ == "__main__":
     print("3. Decrypt File")
     print("4. Exit")
     menu_choice = input("Enter your choice: ")
+    print("-"*40 + "\n")
 
     # Exit program
     if menu_choice == "1":
-        print("-"*40 + "\nEncrypt/Decrypt Messages (Demo)...\n")
+        print("Encrypt/Decrypt Messages (Demo)...\n")
         message  = str(input("Enter your message : "))
         password = getpass.getpass("Enter your password: ")
 
@@ -170,24 +185,14 @@ if __name__ == "__main__":
         print("Message after decryption         : " + decrypted_message)
 
     elif menu_choice == "2":
-        print("-"*40 + "\nEncrypt File...\n")
-        filename = input("Enter the filename : " )
-        file_exist(filename, ".enc") # Check if file exists
-        password = getpass.getpass("Enter your password: ")
-
-        print("")
-
+        print("Encrypt File...\n")
+        filename, password = get_authentication(ENCODE_EXT)
         print("Encrypting your file...")
         encrypt_file(filename, password)
 
     elif menu_choice == "3":
-        print("-"*40 + "\nDecrypt File...\n")
-        filename = input("Enter the filename : " )
-        file_exist(filename, ".dec") # Check if file exists
-        password = getpass.getpass("Enter your password: ")
-
-        print("")
-
+        print("Decrypt File...\n")
+        filename, password = get_authentication(DECODE_EXT)
         print("Decrypting your file...")
         decrypt_file(filename, password)
 
