@@ -12,27 +12,20 @@ CONFIG_FILE = ".encryption_file"
 ENCODE_EXT  = ".enc"
 DECODE_EXT  = ".dec"
 
-def get_authentication(filetype):
-    filename = input("Enter the filename : " )
+def get_authorization():
+    print("\n  .................. !!!!! ...................")
+    print("    Encrypted/Decrypted file already exists!")
+    proceed = input("    Would you like to proceed? (y/n): ")
 
-    # If encrypted file exists, ask to overwrite
-    if file_exist(filename, filetype): # Check if file exists
-        print("Encryption/Decryption file already exists!")
-        proceed = input("Would you like to proceed? (y/n): ")
-        if proceed == "n" or proceed == "N":
-            exit()
-    else:
-        print("Filename doesn't exist!")
+    if proceed == "n" or proceed == "N":
         exit()
-    
-    password = getpass.getpass("Enter your password: ")
 
-    print("")
+    print("  ............................................\n")
 
-def file_exist(filename, file_ext):
-    if not os.path.exists(filename):
-        return False
-    return True
+def file_exist(name):
+    if os.path.exists(name):
+        return True
+    return False
 
 def generate_salt():
     return os.urandom(16)
@@ -153,11 +146,6 @@ def decrypt_file(filename, password):
 ''' Start of script '''
 if __name__ == "__main__":
 
-    # # Make sure that script is used correctly
-    # if len(sys.argv) != 2:
-    #     print("Usage: python3 filecryption.py")
-    #     exit()
-
     ''' 
     User choice menu; When begin encrypting files, will also include
     decrypting.
@@ -167,7 +155,6 @@ if __name__ == "__main__":
     print("3. Decrypt File")
     print("4. Exit")
     menu_choice = input("Enter your choice: ")
-    print("-"*40 + "\n")
 
     # Exit program
     if menu_choice == "1":
@@ -185,15 +172,43 @@ if __name__ == "__main__":
         print("Message after decryption         : " + decrypted_message)
 
     elif menu_choice == "2":
-        print("Encrypt File...\n")
-        filename, password = get_authentication(ENCODE_EXT)
-        print("Encrypting your file...")
+        os.system('clear')
+        print("\nEncrypt File")
+        print("-"*40)
+        filename = input("Enter the filename: " )
+
+        # Check; Does encrypted file of it exist?
+        if file_exist(filename + ENCODE_EXT):
+            get_authorization()
+            password = getpass.getpass("Enter your password: ")
+        elif file_exist(filename):
+            password = getpass.getpass("Enter your password: ")
+            print("")
+        else:
+            print("File does not exist!")
+            exit()
+        
+        print("")
         encrypt_file(filename, password)
 
     elif menu_choice == "3":
-        print("Decrypt File...\n")
-        filename, password = get_authentication(DECODE_EXT)
-        print("Decrypting your file...")
+        os.system('clear')
+        print("\nDecrypt File")
+        print("-"*40)
+        filename = input("Enter the filename: " )
+
+        # Check; Does encrypted file of it exist?
+        if file_exist(filename + DECODE_EXT):
+            get_authorization()
+            password = getpass.getpass("Enter your password: ")
+        elif file_exist(filename):
+            password = getpass.getpass("Enter your password: ")
+            print("")
+        else:
+            print("File does not exist!")
+            exit()
+        
+        print("")
         decrypt_file(filename, password)
 
     else:
