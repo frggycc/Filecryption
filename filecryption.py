@@ -16,7 +16,7 @@ def get_file_info(extension):
     filename = input("Enter the filename: " )
 
     # Check; Does encrypted file of it exist?
-    if file_exist(filename + ENCODE_EXT):
+    if file_exist(filename + extension):
         get_authorization()
         password = getpass.getpass("Enter your password: ")
     elif file_exist(filename):
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         print("-"*40)
 
         filename, password = get_file_info(ENCODE_EXT)
-        
+
         encrypt_file(filename, password)
 
     elif menu_choice == "3":
