@@ -12,6 +12,22 @@ CONFIG_FILE = ".encryption_file"
 ENCODE_EXT  = ".enc"
 DECODE_EXT  = ".dec"
 
+def get_file_info(extension):
+    filename = input("Enter the filename: " )
+
+    # Check; Does encrypted file of it exist?
+    if file_exist(filename + ENCODE_EXT):
+        get_authorization()
+        password = getpass.getpass("Enter your password: ")
+    elif file_exist(filename):
+        password = getpass.getpass("Enter your password: ")
+        print("")
+    else:
+        print("File does not exist!")
+        exit()
+
+    return filename, password
+
 def get_authorization():
     print("\n  .................. !!!!! ...................")
     print("    Encrypted/Decrypted file already exists!")
@@ -175,40 +191,17 @@ if __name__ == "__main__":
         os.system('clear')
         print("\nEncrypt File")
         print("-"*40)
-        filename = input("Enter the filename: " )
 
-        # Check; Does encrypted file of it exist?
-        if file_exist(filename + ENCODE_EXT):
-            get_authorization()
-            password = getpass.getpass("Enter your password: ")
-        elif file_exist(filename):
-            password = getpass.getpass("Enter your password: ")
-            print("")
-        else:
-            print("File does not exist!")
-            exit()
+        filename, password = get_file_info(ENCODE_EXT)
         
-        print("")
         encrypt_file(filename, password)
 
     elif menu_choice == "3":
         os.system('clear')
         print("\nDecrypt File")
         print("-"*40)
-        filename = input("Enter the filename: " )
-
-        # Check; Does encrypted file of it exist?
-        if file_exist(filename + DECODE_EXT):
-            get_authorization()
-            password = getpass.getpass("Enter your password: ")
-        elif file_exist(filename):
-            password = getpass.getpass("Enter your password: ")
-            print("")
-        else:
-            print("File does not exist!")
-            exit()
+        filename, password = get_file_info(DECODE_EXT)
         
-        print("")
         decrypt_file(filename, password)
 
     else:
