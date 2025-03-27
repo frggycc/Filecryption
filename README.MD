@@ -21,4 +21,13 @@ No progress was being made so I have to unfortunately break everything down and 
 - Included getpass library so that characters when entering password stays hidden
 - IV now gets generated via the `.pbkdf2_hmac` function under `generate_key_and_iv`
 	- A longer key is generated; 32 bytes --> 48 bytes
+<<<<<<< HEAD
 	- First 32 bytes = key, last 16 bytes = iv
+- Began adding feature to encrypt files only using file types that Python can natively open/read
+
+### 03/12/2025
+- Included a warning to users if their ".enc" file was found and gives them the option to overwrite or keep
+- Decrypting .enc files decrypted succesfully!!!
+=======
+	- First 32 bytes = key, last 16 bytes = iv
+>>>>>>> main
